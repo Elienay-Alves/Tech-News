@@ -1,5 +1,6 @@
 import time
 import requests
+from parsel import Selector
 
 
 # Requisito 1
@@ -20,8 +21,18 @@ def fetch(url=None):
 
 
 # Requisito 2
-def scrape_updates(html_content):
-    """Seu código deve vir aqui"""
+def scrape_updates(html_content, selector=".entry-title > a::attr(href)"):
+    try:
+        selector_obj = Selector(text=html_content)
+        links = selector_obj.css(selector).getall()
+    except Exception as err:
+        print(f"Erro ao analisar HTML: {err}")
+        links = []
+
+    if not links:
+        print(f"Nenhum link encontrado com o seletor '{Selector}")
+
+    return links
 
 
 # Requisito 3
