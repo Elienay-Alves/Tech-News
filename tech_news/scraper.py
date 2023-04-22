@@ -1,6 +1,7 @@
 import time
 import requests
 from parsel import Selector
+from tech_news.database import create_news
 
 
 # Requisito 1
@@ -21,10 +22,10 @@ def fetch(url=None):
 
 
 # Requisito 2
-def scrape_updates(html_content, selector=".entry-title > a::attr(href)"):
+def scrape_updates(html_content):
     try:
         selector_obj = Selector(text=html_content)
-        links = selector_obj.css(selector).getall()
+        links = selector_obj.css(".entry-title > a::attr(href)").getall()
     except Exception as err:
         print(f"Erro ao analisar HTML: {err}")
         links = []
@@ -36,16 +37,16 @@ def scrape_updates(html_content, selector=".entry-title > a::attr(href)"):
 
 
 # Requisito 3
-def scrape_next_page_link(html_content, selector="a.next::attr(href)"):
+def scrape_next_page_link(html_content):
     try:
         selector_obj = Selector(text=html_content)
-        next_link = selector_obj.css(selector).get()
+        next_link = selector_obj.css("a.next::attr(href)").get()
     except Exception as err:
         print(f"Erro ao analisar HTML: {err}")
         next_link = None
 
     if next_link is None:
-        print(f"Nenhum link encontrado com o seletor '{selector}")
+        print("Nenhum link encontrado com o seletor")
 
     return next_link
 
@@ -96,4 +97,22 @@ def scrape_news(html_content):
 
 # Requisito 5
 def get_tech_news(amount):
-    """Seu código deve vir aqui"""
+    page = fetch("https://blog.betrybe.com/")
+    links = scrape_updates(page)
+
+    while len(links) < amount:
+        next_page = scrape_next_page_link(page)
+        page = fetch(next_page)
+        news_links = scrape_updates(page)
+        for news_link in news_links:
+            links.append(news_link)
+
+    news_list = []
+
+    for index in range(amount):
+        req = fetch(links[index])
+        news_list.append(scrape_news(req))
+
+    create_news(news_list)
+
+    return news_list
