@@ -36,8 +36,18 @@ def scrape_updates(html_content, selector=".entry-title > a::attr(href)"):
 
 
 # Requisito 3
-def scrape_next_page_link(html_content):
-    """Seu código deve vir aqui"""
+def scrape_next_page_link(html_content, selector="a.next::attr(href)"):
+    try:
+        selector_obj = Selector(text=html_content)
+        next_link = selector_obj.css(selector).get()
+    except Exception as err:
+        print(f"Erro ao analisar HTML: {err}")
+        next_link = None
+
+    if next_link is None:
+        print(f"Nenhum link encontrado com o seletor '{selector}")
+
+    return next_link
 
 
 # Requisito 4
