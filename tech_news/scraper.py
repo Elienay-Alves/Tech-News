@@ -52,7 +52,46 @@ def scrape_next_page_link(html_content, selector="a.next::attr(href)"):
 
 # Requisito 4
 def scrape_news(html_content):
-    """Seu código deve vir aqui"""
+    try:
+        selector_obj = Selector(text=html_content)
+        url = selector_obj.css("link[rel='canonical']::attr(href)").get()
+        title = (
+            selector_obj.css(
+                "div.entry-header-inner h1.entry-title::text"
+            ).get().strip()
+        )
+
+        timestamp = selector_obj.css("li.meta-date::text").get()
+        writer = selector_obj.css("span.author a::text").get()
+        reading_time = selector_obj.css(
+            "li.meta-reading-time::text"
+        ).get().split()[0]
+        time = int("".join(filter(str.isdigit, reading_time)))
+        summary = selector_obj.css(
+            "div.entry-content > p:first-of-type *::text"
+        ).getall()
+        summary = "".join(summary).strip()
+        category = selector_obj.css(
+            "div.meta-category a span.label::text"
+        ).get()
+
+    except Exception as err:
+        print(f"Erro ao analisar HTML: {err}")
+        return None
+
+    if not all([url, title, timestamp, writer, time, summary, category]):
+        print("Algumas informações não foram encontradas")
+        return None
+
+    return {
+        "url": url,
+        "title": title,
+        "timestamp": timestamp,
+        "writer": writer,
+        "reading_time": time,
+        "summary": summary,
+        "category": category,
+    }
 
 
 # Requisito 5
